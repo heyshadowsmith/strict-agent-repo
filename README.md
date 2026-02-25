@@ -6,7 +6,7 @@ This is an experimental repository by Shadow Smith that explores the idea of cre
 
 ### 1. Agent Permission Lockdown (`.claude/settings.json` — deny list)
 
-Every configuration file that defines quality rules is explicitly denied for `Edit` and `Write` by Claude. This covers `.claudeignore`, `settings.json` itself, `tsconfig.json`, `eslint.config.ts`, `.prettierrc`, all `diagnostics/*.sh` scripts, `commitlint.config.ts`, `vitest.config.ts`, all `.husky/*` hooks, `.secretlintrc.json`, `knip.json`, `CLAUDE.md`, `package.json`, and `package-lock.json`.
+Every configuration file that defines quality rules is explicitly denied for `Edit` and `Write` by Claude. This covers `.claudeignore`, `settings.json` itself, `tsconfig.json`, `eslint.config.ts`, `.prettierrc`, all `diagnostics/*.sh` scripts, `commitlint.config.ts`, `vitest.config.ts`, all `.husky/*` hooks, `.secretlintrc.json`, `knip.json`, `CLAUDE.md`, `package.json`, `package-lock.json`, `.markdownlint.json`, and `.markdownlint-cli2.jsonc`.
 
 **Problem solved:** An agent can't soften its own constraints. Without this, a sufficiently clever agent could relax a lint rule, lower a coverage threshold, or disable a hook to make its code appear to pass checks.
 
@@ -14,7 +14,7 @@ Every configuration file that defines quality rules is explicitly denied for `Ed
 
 ### 2. Bash Command Whitelist (`.claude/settings.json` — allow list)
 
-Only two Bash patterns are pre-approved: `bash diagnostics/*.sh` and `npm run format`. All other shell commands require explicit user approval.
+Only two Bash patterns are pre-approved: `bash diagnostics/*.sh` and `npm run format *`. All other shell commands require explicit user approval.
 
 **Problem solved:** Prevents the agent from running arbitrary shell commands (e.g., directly invoking `tsc --noEmit` to probe errors without going through the canonical diagnostic scripts, or running `rm`, `curl`, or other side-effectful commands unilaterally).
 
@@ -41,8 +41,8 @@ After every `Edit` or `Write` tool call, `diagnostics/edit.sh` runs automaticall
 Three scripts form a tiered quality gate pipeline, ordered by ascending cost so failures surface as cheaply as possible:
 
 - **`edit.sh`** — type check only; runs after every file save.
-- **`commit.sh`** — format check → TypeScript → lint; runs at pre-commit.
-- **`full.sh`** — format check → TypeScript → lint → dead code → secret scan → vulnerability audit → tests with coverage; runs at pre-push.
+- **`commit.sh`** — format check → TypeScript → lint → markdown lint; runs at pre-commit.
+- **`full.sh`** — format check → TypeScript → lint → markdown lint → dead code → secret scan → vulnerability audit → tests with coverage; runs at pre-push.
 
 **Problem solved:** Expensive checks (full test suite, audit) don't block rapid iteration, but nothing reaches the remote without passing every gate. The explicit ordering principle ("fail as early as possible") is documented in `full.sh` itself.
 
@@ -126,7 +126,7 @@ Coverage is enforced across all four axes — lines, functions, branches, and st
 
 ### 14. Configuration File Opacity (`.claudeignore`)
 
-All tool configuration files — `tsconfig.json`, `eslint.config.ts`, `.prettierrc`, all `diagnostics/*.sh` scripts, `commitlint.config.ts`, `vitest.config.ts`, all `.husky/*` hooks, `.secretlintrc.json`, `knip.json`, `.claude/settings.json` — are listed in `.claudeignore`, making them invisible to Claude's file reading tools.
+All tool configuration files — `tsconfig.json`, `eslint.config.ts`, `.prettierrc`, all `diagnostics/*.sh` scripts, `commitlint.config.ts`, `vitest.config.ts`, all `.husky/*` hooks, `.secretlintrc.json`, `knip.json`, `.claude/settings.json`, `.markdownlint.json`, `.markdownlint-cli2.jsonc` — are listed in `.claudeignore`, making them invisible to Claude's file reading tools.
 
 **Problem solved:** Prevents the agent from reading the rules that constrain it and then writing code specifically designed to pass them superficially (e.g., knowing the exact complexity threshold and writing code that scores 10 rather than fixing the underlying design).
 
@@ -137,6 +137,14 @@ All tool configuration files — `tsconfig.json`, `eslint.config.ts`, `.prettier
 There is no `CLAUDE.md` or `AGENTS.md`, and `README.md` is explicitly denied for reading, editing, and writing. The agent receives zero project-level instructions and cannot read the documentation that describes the constraints it operates under.
 
 **Problem solved:** Any agent instruction file — even a minimal one — is a gift to the agent. Documenting which diagnostic script to run tells it which script to read and model its behaviour around. Denying `README.md` closes the remaining gap: even if the agent found and read the project documentation, it would gain a complete map of every enforcement mechanism and could write code calibrated to pass each check superficially. Keeping both instruction files and strategy documentation out of reach forces the agent to work blind, discovering constraints only when it violates them.
+
+---
+
+### 17. Markdown Linting (`markdownlint-cli2`)
+
+`markdownlint-cli2` enforces consistent Markdown style across all `.md` files using rules defined in `.markdownlint.json`. It runs as part of both `diagnostics/commit.sh` and `diagnostics/full.sh`, blocking commits and pushes that contain malformed or inconsistently styled documentation.
+
+**Problem solved:** Prevents agents from producing poorly structured Markdown — broken headings, inconsistent list styles, improper code fences — that would degrade the readability of human-facing content.
 
 ---
 
