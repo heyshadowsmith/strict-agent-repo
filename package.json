@@ -15,6 +15,7 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "lint:md": "markdownlint-cli2 **/*.md",
+    "lint:md:fix": "markdownlint-cli2 --fix **/*.md",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "knip": "knip",
