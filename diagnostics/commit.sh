@@ -8,11 +8,20 @@ set -euo pipefail
 echo "Running pre-commit checks..."
 
 echo "Checking code formatting..."
-npm run format:check
+if ! npm run format:check; then
+    echo "Formatting issues found. Auto-fixing..."
+    npm run format
+fi
 
 echo "Running TypeScript compiler..."
 npm run tsc
 
 echo "Running linters..."
-npm run lint
-npm run lint:md
+if ! npm run lint; then
+    echo "Lint issues found. Auto-fixing..."
+    npm run lint:fix
+fi
+if ! npm run lint:md; then
+    echo "Markdown lint issues found. Auto-fixing..."
+    npm run lint:md:fix
+fi

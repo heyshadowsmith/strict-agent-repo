@@ -1,2 +1,4 @@
+bash git-checks/protect-main.sh commit
+
 npm run lint-staged
 bash diagnostics/commit.sh

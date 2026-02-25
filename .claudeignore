@@ -14,5 +14,9 @@ vitest.config.ts
 .husky/pre-commit
 .husky/pre-push
 .husky/commit-msg
+git-checks/protect-main.sh                                                                                                                   
+git-checks/validate-branch-name.sh                                                                                                             
+git-checks/check-merged.sh                                                                                                                     
+git-checks/check-pr-size.sh
 .secretlintrc.json
 knip.json

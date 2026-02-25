@@ -52,8 +52,8 @@ Three scripts form a tiered quality gate pipeline, ordered by ascending cost so 
 
 Three git hooks enforce quality at the point of each git operation:
 
-- **`commit-msg`** — runs `commitlint` to enforce the conventional commit format.
-- **`pre-commit`** — runs `lint-staged` (auto-fix and format staged files), then `diagnostics/commit.sh`.
+- **`commit-msg`** — runs `npm run commitlint` to enforce the conventional commit format.
+- **`pre-commit`** — runs `npm run lint-staged` (auto-fix and format staged files), then `diagnostics/commit.sh`.
 - **`pre-push`** — enforces branch naming convention (`<type>/<description>`), blocks direct pushes to `main`, blocks pushing already-merged branches, enforces a PR size hard cap of 500 changed lines (warning at 250), then runs `diagnostics/full.sh`.
 
 **Problem solved:** An agent cannot land code that skips formatting, fails type checking, or violates commit conventions. The pre-push PR size cap specifically prevents agents from generating enormous "solution dumps" that are impossible for a human to review.
@@ -140,6 +140,14 @@ There is no `CLAUDE.md` or `AGENTS.md`, and `README.md` is explicitly denied for
 
 ---
 
+### 16. Staged Auto-formatting (`lint-staged`)
+
+`lint-staged` runs on every commit: ESLint with `--fix` and Prettier on staged `.ts` files; Prettier on staged `.json`, `.html`, `.css`, and `.md` files.
+
+**Problem solved:** Prevents formatting debates and ensures that even if the agent produces poorly formatted output, it is normalised automatically before being committed. Keeps the diff focused on logic, not whitespace.
+
+---
+
 ### 17. Markdown Linting (`markdownlint-cli2`)
 
 `markdownlint-cli2` enforces consistent Markdown style across all `.md` files using rules defined in `.markdownlint.json`. It runs as part of both `diagnostics/commit.sh` and `diagnostics/full.sh`, blocking commits and pushes that contain malformed or inconsistently styled documentation.
@@ -148,8 +156,8 @@ There is no `CLAUDE.md` or `AGENTS.md`, and `README.md` is explicitly denied for
 
 ---
 
-### 16. Staged Auto-formatting (`lint-staged`)
+### 18. Required Human Review (`CODEOWNERS`)
 
-`lint-staged` runs on every commit: ESLint with `--fix` and Prettier on staged `.ts` files; Prettier on staged `.json`, `.html`, `.css`, and `.md` files.
+A `CODEOWNERS` file assigns `@heyshadowsmith` as the required reviewer for every file in the repository. GitHub enforces this at the PR level: no pull request can be merged without an approving review from the code owner.
 
-**Problem solved:** Prevents formatting debates and ensures that even if the agent produces poorly formatted output, it is normalised automatically before being committed. Keeps the diff focused on logic, not whitespace.
+**Problem solved:** Even if an agent successfully passes every automated quality gate, it cannot merge its own changes. A human must inspect and approve every PR before it lands, providing a final review layer that no amount of tooling configuration can substitute for or bypass.
