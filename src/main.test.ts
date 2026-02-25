@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { greet } from "./main";
+import { Result, Option } from "./main";
 
-describe("greet", () => {
-  it("returns a greeting with the given name", () => {
-    expect(greet("world")).toBe("Hello, world!");
+describe("main", () => {
+  it("re-exports the Result namespace", () => {
+    expect(Result.ok(1)).toEqual({ tag: "Ok", value: 1 });
   });
 
-  it("works with any name", () => {
-    expect(greet("Alice")).toBe("Hello, Alice!");
+  it("re-exports the Option namespace", () => {
+    expect(Option.some(1)).toEqual({ tag: "Some", value: 1 });
   });
 });

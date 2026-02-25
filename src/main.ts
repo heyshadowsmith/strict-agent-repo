@@ -1,3 +1,2 @@
-export function greet(name: string): string {
-  return `Hello, ${name}!`;
-}
+export * as Result from "./result";
+export * as Option from "./option";
