@@ -40,7 +40,11 @@
       "Edit(package.json)",
       "Write(package.json)",
       "Edit(package-lock.json)",
-      "Write(package-lock.json)"
+      "Write(package-lock.json)",
+      "Edit(.markdownlint.json)",
+      "Write(.markdownlint.json)",
+      "Edit(.markdownlint-cli2.jsonc)",
+      "Write(.markdownlint-cli2.jsonc)"
     ]
   },
   "hooks": {
