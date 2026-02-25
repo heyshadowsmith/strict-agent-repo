@@ -1,0 +1,6 @@
+{
+  "ignoreDependencies": [
+    "secretlint",
+    "@secretlint/secretlint-rule-preset-recommend"
+  ]
+}

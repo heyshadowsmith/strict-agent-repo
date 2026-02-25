@@ -1,0 +1,52 @@
+{
+  "name": "strict-agent-repo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=25.0.0"
+  },
+  "scripts": {
+    "test": "vitest",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tsc": "tsc",
+    "lint": "eslint src",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "knip",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,html,css,md}": "prettier --write"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
+    "@commitlint/types": "^20.4.0",
+    "@eslint/js": "^10.0.1",
+    "@secretlint/secretlint-rule-preset-recommend": "^11.3.1",
+    "@vitest/coverage-v8": "^4.0.18",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-functional": "^9.0.4",
+    "eslint-plugin-no-only-tests": "^3.3.0",
+    "eslint-plugin-sonarjs": "^4.0.0",
+    "eslint-plugin-unicorn": "^63.0.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.6.1",
+    "knip": "^5.85.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "secretlint": "^11.3.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
+  }
+}
