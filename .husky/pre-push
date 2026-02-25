@@ -21,7 +21,7 @@ fi
 
 # PR size check: count meaningful lines changed vs merge base
 if git show-ref --verify --quiet refs/remotes/origin/main; then
-  base=$(git merge-base HEAD origin/main 2>/dev/null)
+  base=$(git merge-base HEAD origin/main 2>/dev/null) || { base=""; echo "Warning: no merge base found, skipping PR size check."; }
   if [ -n "$base" ]; then
     lines=$(git diff --numstat "$base" HEAD -- \
       ':!package-lock.json' \
