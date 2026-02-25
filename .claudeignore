@@ -1,22 +1,24 @@
+# Project files
 README.md
 .claudeignore
-.claude/settings.json
+
+# Code quality contols
 tsconfig.json
 eslint.config.ts
 .markdownlint.json
 .markdownlint-cli2.jsonc
 .prettierrc
-diagnostics/full.sh
-diagnostics/commit.sh
-diagnostics/edit.sh
 commitlint.config.ts
-vitest.config.ts
-.husky/pre-commit
-.husky/pre-push
-.husky/commit-msg
-git-checks/protect-main.sh                                                                                                                   
-git-checks/validate-branch-name.sh                                                                                                             
-git-checks/check-merged.sh                                                                                                                     
-git-checks/check-pr-size.sh
 .secretlintrc.json
 knip.json
+
+## Test controls
+vitest.config.ts
+
+# Hooks
+.husky/*
+.claude/*
+
+# Checks
+diagnostics/*
+git-checks/*
