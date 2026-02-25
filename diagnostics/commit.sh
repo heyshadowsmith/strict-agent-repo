@@ -15,3 +15,4 @@ npm run tsc
 
 echo "Running linters..."
 npm run lint
+npm run lint:md

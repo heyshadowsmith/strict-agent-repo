@@ -14,6 +14,7 @@ npm run tsc
 
 echo "Running linters..."
 npm run lint
+npm run lint:md
 
 echo "Checking for dead code..."
 npm run knip
