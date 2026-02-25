@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["Bash(bash *diagnostics/*.sh)", "Bash(npm run format)"],
+    "allow": ["Bash(bash *diagnostics/*.sh)", "Bash(npm run format *)"],
     "deny": [
       "Read(README.md)",
       "Edit(README.md)",
