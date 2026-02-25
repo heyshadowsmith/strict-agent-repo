@@ -1,0 +1,70 @@
+{
+  "permissions": {
+    "allow": ["Bash(bash *diagnostics/*.sh)", "Bash(npm run format)"],
+    "deny": [
+      "Read(README.md)",
+      "Edit(README.md)",
+      "Write(README.md)",
+      "Edit(.claudeignore)",
+      "Write(.claudeignore)",
+      "Edit(.claude/settings.json)",
+      "Write(.claude/settings.json)",
+      "Edit(tsconfig.json)",
+      "Write(tsconfig.json)",
+      "Edit(eslint.config.ts)",
+      "Write(eslint.config.ts)",
+      "Edit(.prettierrc)",
+      "Write(.prettierrc)",
+      "Edit(diagnostics/full.sh)",
+      "Write(diagnostics/full.sh)",
+      "Edit(diagnostics/commit.sh)",
+      "Write(diagnostics/commit.sh)",
+      "Edit(diagnostics/edit.sh)",
+      "Write(diagnostics/edit.sh)",
+      "Edit(commitlint.config.ts)",
+      "Write(commitlint.config.ts)",
+      "Edit(vitest.config.ts)",
+      "Write(vitest.config.ts)",
+      "Edit(.husky/pre-commit)",
+      "Write(.husky/pre-commit)",
+      "Edit(.husky/pre-push)",
+      "Write(.husky/pre-push)",
+      "Edit(.husky/commit-msg)",
+      "Write(.husky/commit-msg)",
+      "Edit(.secretlintrc.json)",
+      "Write(.secretlintrc.json)",
+      "Edit(knip.json)",
+      "Write(knip.json)",
+      "Edit(CLAUDE.md)",
+      "Write(CLAUDE.md)",
+      "Edit(package.json)",
+      "Write(package.json)",
+      "Edit(package-lock.json)",
+      "Write(package-lock.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cmd=$(cat | jq -r \".tool_input.command // empty\"); if echo \"$cmd\" | grep -qE \"git.*(--no-verify|--force)\"; then echo \"Blocked: bypassing git hooks is not allowed\" >&2; exit 2; fi'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash diagnostics/edit.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

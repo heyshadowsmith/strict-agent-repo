@@ -1,0 +1,2 @@
+npx lint-staged
+bash diagnostics/commit.sh

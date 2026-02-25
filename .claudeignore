@@ -1,0 +1,16 @@
+README.md
+.claudeignore
+.claude/settings.json
+tsconfig.json
+eslint.config.ts
+.prettierrc
+diagnostics/full.sh
+diagnostics/commit.sh
+diagnostics/edit.sh
+commitlint.config.ts
+vitest.config.ts
+.husky/pre-commit
+.husky/pre-push
+.husky/commit-msg
+.secretlintrc.json
+knip.json
