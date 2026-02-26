@@ -60,6 +60,15 @@ describe("POST /todos", () => {
     });
     expect(res.status).toBe(400);
   });
+
+  it("returns 400 for a null body", async () => {
+    const res = await app.request("/todos", {
+      method: "POST",
+      headers: JSON_CONTENT,
+      body: JSON.stringify(null),
+    });
+    expect(res.status).toBe(400);
+  });
 });
 
 describe("GET /todos/:id", () => {
@@ -96,6 +105,15 @@ describe("PUT /todos/:id", () => {
       method: "PUT",
       headers: JSON_CONTENT,
       body: JSON.stringify({ title: 123 }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for a null body", async () => {
+    const res = await app.request("/todos/any-id", {
+      method: "PUT",
+      headers: JSON_CONTENT,
+      body: JSON.stringify(null),
     });
     expect(res.status).toBe(400);
   });
