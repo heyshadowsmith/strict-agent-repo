@@ -46,22 +46,22 @@ describe("isFailure", () => {
 
 describe("map", () => {
   it("transforms an Ok value", () => {
-    expect(map((x: number) => x * 2)(ok(5))).toEqual(ok(10));
+    expect(map(ok(5), (x: number) => x * 2)).toEqual(ok(10));
   });
   it("passes Failure through unchanged", () => {
-    expect(map((x: number) => x * 2)(fail("e"))).toEqual(fail("e"));
+    expect(map(fail("e"), (x: number) => x * 2)).toEqual(fail("e"));
   });
 });
 
 describe("flatMap", () => {
   it("chains Ok into a new Result", () => {
-    expect(flatMap((x: number) => ok(x + 1))(ok(5))).toEqual(ok(6));
+    expect(flatMap(ok(5), (x: number) => ok(x + 1))).toEqual(ok(6));
   });
   it("short-circuits on incoming Failure", () => {
-    expect(flatMap((x: number) => ok(x + 1))(fail("e"))).toEqual(fail("e"));
+    expect(flatMap(fail("e"), (x: number) => ok(x + 1))).toEqual(fail("e"));
   });
   it("propagates Failure returned by transform", () => {
-    expect(flatMap(() => fail("propagated"))(ok(5))).toEqual(
+    expect(flatMap(ok(5), () => fail("propagated"))).toEqual(
       fail("propagated"),
     );
   });
@@ -70,12 +70,12 @@ describe("flatMap", () => {
 describe("mapFailure", () => {
   it("passes Ok through unchanged", () => {
     expect(
-      mapFailure((message: string) => message.toUpperCase())(ok(5)),
+      mapFailure(ok(5), (message: string) => message.toUpperCase()),
     ).toEqual(ok(5));
   });
   it("transforms a Failure value", () => {
     expect(
-      mapFailure((message: string) => message.toUpperCase())(fail("oops")),
+      mapFailure(fail("oops"), (message: string) => message.toUpperCase()),
     ).toEqual(fail("OOPS"));
   });
 });
@@ -84,36 +84,38 @@ describe("match", () => {
   it("calls onOk for an Ok result", () => {
     expect(
       match(
+        ok(5),
         (x: number) => x * 2,
         () => -1,
-      )(ok(5)),
+      ),
     ).toBe(10);
   });
   it("calls onError for a Failure result", () => {
     expect(
       match(
+        fail("e"),
         (x: number) => x * 2,
         () => -1,
-      )(fail("e")),
+      ),
     ).toBe(-1);
   });
 });
 
 describe("getOrElse", () => {
   it("returns the Ok value", () => {
-    expect(getOrElse(0)(ok(42))).toBe(42);
+    expect(getOrElse(ok(42), 0)).toBe(42);
   });
   it("returns the default for Failure", () => {
-    expect(getOrElse(0)(fail("e"))).toBe(0);
+    expect(getOrElse(fail("e"), 0)).toBe(0);
   });
 });
 
 describe("recover", () => {
   it("passes an Ok result through", () => {
-    expect(recover(() => 0)(ok(42))).toEqual(ok(42));
+    expect(recover(ok(42), () => 0)).toEqual(ok(42));
   });
   it("converts Failure into Ok via handler", () => {
-    expect(recover((message: string) => message.length)(fail("oops"))).toEqual(
+    expect(recover(fail("oops"), (message: string) => message.length)).toEqual(
       ok(4),
     );
   });
@@ -121,10 +123,10 @@ describe("recover", () => {
 
 describe("fromNullable", () => {
   it("wraps a defined value in Ok", () => {
-    expect(fromNullable("missing")(42)).toEqual(ok(42));
+    expect(fromNullable(42, "missing")).toEqual(ok(42));
   });
   it("returns Failure for undefined", () => {
-    expect(fromNullable("missing")()).toEqual(fail("missing"));
+    expect(fromNullable(undefined, "missing")).toEqual(fail("missing"));
   });
 });
 

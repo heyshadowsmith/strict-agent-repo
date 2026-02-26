@@ -2,58 +2,81 @@ export interface Ok<T> {
   readonly tag: "Ok";
   readonly value: T;
 }
+
 export interface Failure<E> {
   readonly tag: "Failure";
   readonly error: E;
 }
+
 export type Result<T, E = Error> = Ok<T> | Failure<E>;
 
-export const ok = <T>(value: T): Ok<T> => ({ tag: "Ok", value });
-export const fail = <E>(error: E): Failure<E> => ({ tag: "Failure", error });
+export function ok<T>(value: T): Ok<T> {
+  return { tag: "Ok", value };
+}
 
-export const isOk = <T, E>(result: Result<T, E>): result is Ok<T> =>
-  result.tag === "Ok";
+export function fail<E>(error: E): Failure<E> {
+  return { tag: "Failure", error };
+}
 
-export const isFailure = <T, E>(result: Result<T, E>): result is Failure<E> =>
-  result.tag === "Failure";
+export function isOk<T, E>(result: Result<T, E>): result is Ok<T> {
+  return result.tag === "Ok";
+}
 
-export const map =
-  <T, U, E>(transform: (value: T) => U) =>
-  (result: Result<T, E>): Result<U, E> =>
-    isOk(result) ? ok(transform(result.value)) : result;
+export function isFailure<T, E>(result: Result<T, E>): result is Failure<E> {
+  return result.tag === "Failure";
+}
 
-export const flatMap =
-  <T, U, E>(transform: (value: T) => Result<U, E>) =>
-  (result: Result<T, E>): Result<U, E> =>
-    isOk(result) ? transform(result.value) : result;
+export function map<T, U, E>(
+  result: Result<T, E>,
+  transform: (value: T) => U,
+): Result<U, E> {
+  return isOk(result) ? ok(transform(result.value)) : result;
+}
 
-export const mapFailure =
-  <T, E, F>(transform: (error: E) => F) =>
-  (result: Result<T, E>): Result<T, F> =>
-    isFailure(result) ? fail(transform(result.error)) : result;
+export function flatMap<T, U, E>(
+  result: Result<T, E>,
+  transform: (value: T) => Result<U, E>,
+): Result<U, E> {
+  return isOk(result) ? transform(result.value) : result;
+}
 
-export const match =
-  <T, E, U>(onOk: (value: T) => U, onError: (error: E) => U) =>
-  (result: Result<T, E>): U =>
-    isOk(result) ? onOk(result.value) : onError(result.error);
+export function mapFailure<T, E, F>(
+  result: Result<T, E>,
+  transform: (error: E) => F,
+): Result<T, F> {
+  return isFailure(result) ? fail(transform(result.error)) : result;
+}
 
-export const getOrElse =
-  <T>(defaultValue: T) =>
-  <E>(result: Result<T, E>): T =>
-    isOk(result) ? result.value : defaultValue;
+export function match<T, E, U>(
+  result: Result<T, E>,
+  onOk: (value: T) => U,
+  onError: (error: E) => U,
+): U {
+  return isOk(result) ? onOk(result.value) : onError(result.error);
+}
 
-export const recover =
-  <T, E>(handler: (error: E) => T) =>
-  (result: Result<T, E>): Result<T, never> =>
-    isFailure(result) ? ok(handler(result.error)) : result;
+export function getOrElse<T, E>(result: Result<T, E>, defaultValue: T): T {
+  return isOk(result) ? result.value : defaultValue;
+}
 
-export const fromNullable =
-  <E>(error: E) =>
-  <T>(value?: T): Result<T, E> =>
-    value === undefined ? fail(error) : ok(value);
+export function recover<T, E>(
+  result: Result<T, E>,
+  handler: (error: E) => T,
+): Result<T, never> {
+  return isFailure(result) ? ok(handler(result.error)) : result;
+}
 
-export const combine = <T, E>(
+export function fromNullable<T, E>(
+  value: T | undefined,
+  error: E,
+): Result<T, E> {
+  return value === undefined ? fail(error) : ok(value);
+}
+
+export function combine<T, E>(
   results: readonly Result<T, E>[],
-): Result<readonly T[], E> =>
-  results.find(isFailure) ??
-  ok<readonly T[]>(results.filter(isOk).map((r) => r.value));
+): Result<readonly T[], E> {
+  const firstFailure = results.find(isFailure);
+  if (firstFailure !== undefined) return firstFailure;
+  return ok(results.filter(isOk).map((r) => r.value));
+}
