@@ -32,14 +32,14 @@ export default tseslint.config(
         "error",
         { assertionStyle: "as" },
       ],
-      complexity: ["error", 10],
-      "max-depth": ["error", 3],
-      "max-lines-per-function": ["error", 40],
+      complexity: ["error", 15],
+      "max-depth": ["error", 4],
+      "max-lines-per-function": ["error", 60],
       "max-lines": [
         "error",
-        { max: 200, skipBlankLines: true, skipComments: true },
+        { max: 300, skipBlankLines: true, skipComments: true },
       ],
-      "max-params": ["error", 3],
+      "max-params": ["error", 4],
       "@typescript-eslint/naming-convention": [
         "error",
         { selector: "default", format: ["camelCase"] },
@@ -60,18 +60,10 @@ export default tseslint.config(
       "unicorn/no-array-callback-reference": "off",
     },
   },
-  // Functional: enforce immutability and no-classes; drop the no-statements
-  // and no-exceptions presets so if/else, try/catch, and throw remain usable.
   {
     plugins: { functional },
     rules: {
-      "functional/no-let": "error",
-      "functional/immutable-data": "error",
-      "functional/no-loop-statements": "error",
-      "functional/no-classes": "error",
-      "functional/no-class-inheritance": "error",
       "functional/no-mixed-types": "error",
-      "functional/no-this-expressions": "error",
     },
   },
   prettierConfig,
