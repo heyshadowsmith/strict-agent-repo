@@ -55,7 +55,5 @@ export const fromNullable =
 export const combine = <T, E>(
   results: readonly Result<T, E>[],
 ): Result<readonly T[], E> =>
-  results.find((r): r is Failure<E> => isFailure(r)) ??
-  ok<readonly T[]>(
-    results.filter((r): r is Ok<T> => isOk(r)).map((r) => r.value),
-  );
+  results.find(isFailure) ??
+  ok<readonly T[]>(results.filter(isOk).map((r) => r.value));
