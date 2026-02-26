@@ -27,9 +27,10 @@ export default tseslint.config(
     rules: {
       "no-console": "error",
       "no-only-tests/no-only-tests": "error",
+      // Allow `as` type assertions; ban the old angle-bracket form
       "@typescript-eslint/consistent-type-assertions": [
         "error",
-        { assertionStyle: "never" },
+        { assertionStyle: "as" },
       ],
       complexity: ["error", 10],
       "max-depth": ["error", 3],
@@ -51,14 +52,26 @@ export default tseslint.config(
         { selector: "typeLike", format: ["PascalCase"] },
         { selector: "enumMember", format: ["UPPER_CASE"] },
       ],
+      // Unicorn: disable rules that harm readability more than they help
+      "unicorn/prevent-abbreviations": "off",
+      "unicorn/no-array-reduce": "off",
+      "unicorn/no-null": "off",
+      "unicorn/no-negated-condition": "off",
+      "unicorn/no-array-callback-reference": "off",
     },
   },
-  functional.configs.recommended,
+  // Functional: enforce immutability and no-classes; drop the no-statements
+  // and no-exceptions presets so if/else, try/catch, and throw remain usable.
   {
-    files: ["**/*.test.ts", "**/*.spec.ts"],
+    plugins: { functional },
     rules: {
-      "functional/no-expression-statements": "off",
-      "functional/no-return-void": "off",
+      "functional/no-let": "error",
+      "functional/immutable-data": "error",
+      "functional/no-loop-statements": "error",
+      "functional/no-classes": "error",
+      "functional/no-class-inheritance": "error",
+      "functional/no-mixed-types": "error",
+      "functional/no-this-expressions": "error",
     },
   },
   prettierConfig,
