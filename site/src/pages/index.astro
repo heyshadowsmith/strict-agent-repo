@@ -1,0 +1,483 @@
+---
+import Layout from "../layouts/Layout.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import InfoBox from "../components/InfoBox.astro";
+import Table from "../components/Table.astro";
+
+const frontmatterFields = [
+  [
+    "<code>name</code>",
+    "No",
+    "Display name for the skill. Defaults to directory name.",
+  ],
+  [
+    "<code>description</code>",
+    "Recommended",
+    "What the skill does. Claude uses this to decide when to apply it.",
+  ],
+  [
+    "<code>allowed-tools</code>",
+    "No",
+    "Tools Claude can use without permission prompts when active.",
+  ],
+  [
+    "<code>disable-model-invocation</code>",
+    "No",
+    "Set to <code>true</code> to prevent Claude from auto-loading this skill.",
+  ],
+  [
+    "<code>user-invocable</code>",
+    "No",
+    "Set to <code>false</code> to hide from the <code>/</code> menu.",
+  ],
+  [
+    "<code>context</code>",
+    "No",
+    "Set to <code>fork</code> to run in an isolated subagent.",
+  ],
+  [
+    "<code>model</code>",
+    "No",
+    "Model to use when this skill is active.",
+  ],
+];
+
+const invocationRows = [
+  [
+    "(default)",
+    "Yes",
+    "Yes",
+    "Description always in context; full skill loads when invoked",
+  ],
+  [
+    "<code>disable-model-invocation: true</code>",
+    "Yes",
+    "No",
+    "Description not in context; loads only when you invoke",
+  ],
+  [
+    "<code>user-invocable: false</code>",
+    "No",
+    "Yes",
+    "Description always in context; loads when Claude invokes",
+  ],
+];
+---
+
+<Layout title="Restrict Tool Access — Claude Code Skills">
+  <article>
+    <div class="breadcrumb">
+      <span>Docs</span>
+      <span class="sep">/</span>
+      <span>Skills</span>
+      <span class="sep">/</span>
+      <span class="current">Restrict Tool Access</span>
+    </div>
+
+    <h1>Restrict Tool Access</h1>
+    <p class="subtitle">
+      Control which tools Claude can use when a skill is active using the
+      <code>allowed-tools</code> frontmatter field. Build read-only modes,
+      safe reviewers, and scoped automation.
+    </p>
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        Skills extend what Claude can do in Claude Code. Each skill is defined
+        by a <code>SKILL.md</code> file with YAML frontmatter and markdown
+        instructions. The <code>allowed-tools</code> field lets you limit which
+        tools Claude has access to when a skill is running, creating safer and
+        more predictable workflows.
+      </p>
+    </section>
+
+    <section id="basic-usage">
+      <h2>Basic usage</h2>
+      <p>
+        Use the <code>allowed-tools</code> field in your skill's frontmatter to
+        specify a comma-separated list of tools. This example creates a
+        read-only mode where Claude can explore files but not modify them:
+      </p>
+
+      <CodeBlock lang="yaml" title="SKILL.md">
+        {`---
+name: safe-reader
+description: Read files without making changes
+allowed-tools: Read, Grep, Glob
+---`}
+      </CodeBlock>
+
+      <p>
+        When <code>safe-reader</code> is active, Claude can only use the
+        <code>Read</code>, <code>Grep</code>, and <code>Glob</code> tools.
+        Write, Edit, Bash, and all other tools are blocked for the duration
+        of the skill.
+      </p>
+    </section>
+
+    <section id="frontmatter-reference">
+      <h2>Frontmatter reference</h2>
+      <p>
+        Skills are configured through YAML frontmatter at the top of
+        <code>SKILL.md</code>. All fields are optional, but
+        <code>description</code> is recommended so Claude knows when to use the
+        skill.
+      </p>
+
+      <Table
+        headers={["Field", "Required", "Description"]}
+        rows={frontmatterFields}
+      />
+
+      <CodeBlock lang="yaml" title="Full frontmatter example">
+        {`---
+name: my-skill
+description: What this skill does
+disable-model-invocation: true
+allowed-tools: Read, Grep, Glob
+---
+
+Your skill instructions here...`}
+      </CodeBlock>
+    </section>
+
+    <section id="controlling-access">
+      <h2>Three ways to control skill access</h2>
+      <p>
+        Beyond <code>allowed-tools</code>, there are additional ways to control
+        which skills Claude can invoke and how they behave:
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>Disable all skills</h3>
+          <p>
+            Deny the <code>Skill</code> tool entirely in your permission
+            settings:
+          </p>
+          <CodeBlock lang="text">
+            {`# Add to deny rules:
+Skill`}
+          </CodeBlock>
+        </div>
+
+        <div class="card">
+          <h3>Allow or deny specific skills</h3>
+          <p>Use permission rules to target individual skills:</p>
+          <CodeBlock lang="text">
+            {`# Allow only specific skills
+Skill(commit)
+Skill(review-pr *)
+
+# Deny specific skills
+Skill(deploy *)`}
+          </CodeBlock>
+        </div>
+
+        <div class="card">
+          <h3>Hide individual skills</h3>
+          <p>
+            Add <code>disable-model-invocation: true</code> to frontmatter.
+            This removes the skill from Claude's context entirely.
+          </p>
+          <CodeBlock lang="yaml">
+            {`---
+name: deploy
+disable-model-invocation: true
+---`}
+          </CodeBlock>
+        </div>
+      </div>
+
+      <InfoBox type="note">
+        Permission syntax: <code>Skill(name)</code> for exact match,
+        <code>Skill(name *)</code> for prefix match with any arguments.
+      </InfoBox>
+    </section>
+
+    <section id="invocation-control">
+      <h2>Invocation control</h2>
+      <p>
+        Two frontmatter fields control who can trigger a skill and whether
+        it appears in context:
+      </p>
+
+      <Table
+        headers={["Frontmatter", "You can invoke", "Claude can invoke", "When loaded"]}
+        rows={invocationRows}
+      />
+
+      <InfoBox type="tip">
+        Use <code>disable-model-invocation: true</code> for workflows with
+        side effects like deploys or notifications. You don't want Claude
+        deciding to deploy because your code looks ready.
+      </InfoBox>
+    </section>
+
+    <section id="practical-examples">
+      <h2>Practical examples</h2>
+
+      <h3>Code reviewer (read-only)</h3>
+      <p>A skill that reviews code without making changes:</p>
+      <CodeBlock lang="yaml" title=".claude/skills/review/SKILL.md">
+        {`---
+name: review
+description: Review code for issues and suggest improvements
+allowed-tools: Read, Grep, Glob
+---
+
+Review the code and provide feedback on:
+1. Potential bugs or logic errors
+2. Performance concerns
+3. Security issues
+4. Code style and readability
+
+Do NOT make any changes. Only provide suggestions.`}
+      </CodeBlock>
+
+      <h3>Deploy workflow (manual only)</h3>
+      <p>A skill that only you can trigger, with scoped tool access:</p>
+      <CodeBlock lang="yaml" title=".claude/skills/deploy/SKILL.md">
+        {`---
+name: deploy
+description: Deploy the application to production
+disable-model-invocation: true
+allowed-tools: Bash(npm run build), Bash(npm run test), Bash(git *)
+---
+
+Deploy $ARGUMENTS to production:
+1. Run the test suite
+2. Build the application
+3. Push to the deployment target
+4. Verify the deployment succeeded`}
+      </CodeBlock>
+
+      <h3>Research agent (forked context)</h3>
+      <p>A skill that runs in an isolated subagent for deep research:</p>
+      <CodeBlock lang="yaml" title=".claude/skills/deep-research/SKILL.md">
+        {`---
+name: deep-research
+description: Research a topic thoroughly
+context: fork
+agent: Explore
+---
+
+Research $ARGUMENTS thoroughly:
+1. Find relevant files using Glob and Grep
+2. Read and analyze the code
+3. Summarize findings with specific file references`}
+      </CodeBlock>
+    </section>
+
+    <section id="skill-arguments">
+      <h2>Passing arguments</h2>
+      <p>
+        Skills accept arguments via the <code>$ARGUMENTS</code> placeholder.
+        Individual arguments are available by index with
+        <code>$ARGUMENTS[N]</code> or the shorthand <code>$N</code>:
+      </p>
+      <CodeBlock lang="yaml" title=".claude/skills/migrate/SKILL.md">
+        {`---
+name: migrate-component
+description: Migrate a component between frameworks
+---
+
+Migrate the $0 component from $1 to $2.
+Preserve all existing behavior and tests.`}
+      </CodeBlock>
+      <p>
+        Running <code>/migrate-component SearchBar React Vue</code> replaces
+        <code>$0</code> with <code>SearchBar</code>, <code>$1</code> with
+        <code>React</code>, and <code>$2</code> with <code>Vue</code>.
+      </p>
+    </section>
+
+    <section id="where-skills-live">
+      <h2>Where skills live</h2>
+      <p>
+        Where you store a skill determines its scope. Higher-priority locations
+        win when names conflict:
+      </p>
+      <div class="scope-list">
+        <div class="scope-item">
+          <span class="scope-name">Enterprise</span>
+          <span class="scope-path">Managed settings</span>
+          <span class="scope-applies">All users in your org</span>
+        </div>
+        <div class="scope-item">
+          <span class="scope-name">Personal</span>
+          <span class="scope-path">~/.claude/skills/&lt;name&gt;/SKILL.md</span>
+          <span class="scope-applies">All your projects</span>
+        </div>
+        <div class="scope-item">
+          <span class="scope-name">Project</span>
+          <span class="scope-path">.claude/skills/&lt;name&gt;/SKILL.md</span>
+          <span class="scope-applies">This project only</span>
+        </div>
+        <div class="scope-item">
+          <span class="scope-name">Plugin</span>
+          <span class="scope-path">&lt;plugin&gt;/skills/&lt;name&gt;/SKILL.md</span>
+          <span class="scope-applies">Where plugin is enabled</span>
+        </div>
+      </div>
+    </section>
+  </article>
+</Layout>
+
+<style>
+  article {
+    max-width: 100%;
+  }
+
+  .breadcrumb {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .sep {
+    opacity: 0.4;
+  }
+
+  .current {
+    color: var(--text);
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-size: 1.08rem;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+  }
+
+  .subtitle code {
+    color: var(--accent);
+    font-family:
+      "SF Mono", "Fira Code", monospace;
+    font-size: 0.92rem;
+    padding: 0.1rem 0.35rem;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  section {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem 0;
+  }
+
+  p {
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  p code,
+  li code {
+    color: var(--accent);
+    font-family:
+      "SF Mono", "Fira Code", monospace;
+    font-size: 0.85rem;
+    padding: 0.1rem 0.35rem;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .card-grid {
+    display: grid;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .scope-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .scope-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 1fr;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.88rem;
+  }
+
+  .scope-name {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .scope-path {
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .scope-applies {
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  @media (max-width: 640px) {
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    .scope-item {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+
+    .scope-applies {
+      text-align: left;
+    }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+interface Props {
+  lang?: string;
+  title?: string;
+}
+
+const { lang = "yaml", title } = Astro.props;
+---
+
+<div class="code-block">
+  {title && <div class="code-title">{title}</div>}
+  <pre><code class={`language-${lang}`}><slot /></code></pre>
+</div>
+
+<style>
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+
+  .code-title {
+    padding: 0.5rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border);
+    font-family: monospace;
+  }
+
+  pre {
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family:
+      "SF Mono", "Fira Code", "JetBrains Mono", monospace;
+    color: var(--text);
+  }
+</style>

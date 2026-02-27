@@ -1,0 +1,79 @@
+---
+interface Props {
+  headers: string[];
+  rows: string[][];
+}
+
+const { headers, rows } = Astro.props;
+---
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        {headers.map((h) => <th>{h}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((row) => (
+          <tr>
+            {row.map((cell) => (
+              <td>
+                <Fragment set:html={cell} />
+              </td>
+            ))}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  :global(td code) {
+    font-family:
+      "SF Mono", "Fira Code", monospace;
+    font-size: 0.82rem;
+    padding: 0.15rem 0.4rem;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--accent);
+  }
+</style>

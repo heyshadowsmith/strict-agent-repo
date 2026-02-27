@@ -1,0 +1,86 @@
+---
+interface Props {
+  type?: "note" | "tip" | "warning";
+}
+
+const { type = "note" } = Astro.props;
+
+const icons: Record<string, string> = {
+  note: "ℹ",
+  tip: "✦",
+  warning: "⚠",
+};
+
+const labels: Record<string, string> = {
+  note: "Note",
+  tip: "Tip",
+  warning: "Warning",
+};
+---
+
+<aside class={`info-box ${type}`}>
+  <div class="info-header">
+    <span class="info-icon">{icons[type]}</span>
+    <span class="info-label">{labels[type]}</span>
+  </div>
+  <div class="info-content">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .info-box {
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    border-left: 3px solid;
+  }
+
+  .info-box.note {
+    background: rgba(122, 172, 248, 0.06);
+    border-color: #7cacf8;
+  }
+
+  .info-box.tip {
+    background: rgba(130, 201, 135, 0.06);
+    border-color: #82c987;
+  }
+
+  .info-box.warning {
+    background: rgba(235, 180, 96, 0.06);
+    border-color: #ebb460;
+  }
+
+  .info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .note .info-header {
+    color: #7cacf8;
+  }
+
+  .tip .info-header {
+    color: #82c987;
+  }
+
+  .warning .info-header {
+    color: #ebb460;
+  }
+
+  .info-icon {
+    font-size: 0.9rem;
+  }
+
+  .info-content {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+</style>
