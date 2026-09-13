@@ -7,7 +7,8 @@
 
 set -euo pipefail
 
-pattern='^(feat|fix|chore|docs|refactor|test|perf|ci|build|revert)/[a-z0-9-]+$'
+# shellcheck source=git-checks/lib-branch-name.sh
+source "$(dirname "$0")/lib-branch-name.sh"
 
 fail() {
   echo "Branch '$1' does not follow naming convention."
@@ -18,7 +19,7 @@ fail() {
 
 if [ "${1:-}" != "push" ]; then
   branch=$(git branch --show-current)
-  echo "$branch" | grep -qE "$pattern" || fail "$branch"
+  echo "$branch" | grep -qE "$BRANCH_NAME_PATTERN" || fail "$branch"
   exit 0
 fi
 
@@ -28,5 +29,5 @@ while read -r local_ref _local_oid remote_ref _remote_oid; do
     refs/heads/*) name="${remote_ref#refs/heads/}" ;;
     *) continue ;;
   esac
-  echo "$name" | grep -qE "$pattern" || fail "$name"
+  echo "$name" | grep -qE "$BRANCH_NAME_PATTERN" || fail "$name"
 done

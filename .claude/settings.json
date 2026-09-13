@@ -23,30 +23,60 @@
     "deny": [
       "Edit(README.md)",
       "Edit(CLAUDE.md)",
+      "Edit(**/CLAUDE.md)",
+      "Edit(CLAUDE.local.md)",
+      "Edit(**/CLAUDE.local.md)",
       "Edit(.claudeignore)",
+      "Edit(**/.claudeignore)",
       "Edit(tsconfig*.json)",
+      "Edit(**/tsconfig*.json)",
       "Edit(eslint.config.*)",
+      "Edit(**/eslint.config.*)",
       "Edit(.markdownlint*)",
+      "Edit(**/.markdownlint*)",
       "Edit(.prettierrc*)",
+      "Edit(**/.prettierrc*)",
       "Edit(prettier.config.*)",
+      "Edit(**/prettier.config.*)",
       "Edit(.prettierignore)",
+      "Edit(**/.prettierignore)",
+      "Edit(.editorconfig)",
+      "Edit(**/.editorconfig)",
       "Edit(commitlint.config.*)",
+      "Edit(**/commitlint.config.*)",
       "Edit(.commitlintrc*)",
+      "Edit(**/.commitlintrc*)",
+      "Edit(.config/**)",
       "Edit(.secretlintrc*)",
+      "Edit(**/.secretlintrc*)",
       "Edit(.secretlintignore)",
+      "Edit(**/.secretlintignore)",
       "Edit(knip.*)",
+      "Edit(**/knip.*)",
       "Edit(.knip.*)",
+      "Edit(**/.knip.*)",
       "Edit(vitest.config.*)",
       "Edit(vitest.workspace.*)",
       "Edit(vite.config.*)",
+      "Edit(.lintstagedrc*)",
+      "Edit(**/.lintstagedrc*)",
+      "Edit(lint-staged.config.*)",
+      "Edit(**/lint-staged.config.*)",
       "Edit(.npmrc)",
+      "Edit(**/.npmrc)",
+      "Edit(.gitattributes)",
+      "Edit(**/.gitattributes)",
+      "Edit(.git/info/**)",
       "Edit(.github/**)",
       "Edit(.husky/**)",
       "Edit(.claude/**)",
+      "Edit(**/.claude/**)",
       "Edit(diagnostics/**)",
       "Edit(git-checks/**)",
       "Edit(package.json)",
+      "Edit(**/package.json)",
       "Edit(package-lock.json)",
+      "Edit(**/package-lock.json)",
       "Edit(~/.claude/settings.json)",
       "Bash(git *--output*)",
       "mcp__ide__executeCode"
@@ -94,6 +124,15 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PROJECT_DIR}\"/git-checks/validate-branch-before-git.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}\"/git-checks/check-edit-branch.sh"
           }
         ]
       }

@@ -58,7 +58,7 @@ Dependencies are audited for known vulnerabilities in CI on every pull request a
 
 ### 14. Agent Instructions via `.claude/rules/`
 
-Two rule files give the agent explicit behavioural constraints aligned with the hook pipeline — one for git discipline, one for protected files. Rather than forcing the agent to discover constraints only at violation time, the rules surface the same policies the hooks enforce as intent before they become blocked actions.
+Two rule files give the agent explicit behavioural constraints aligned with the hook pipeline — one for git discipline, one for protected files. Rather than forcing the agent to discover constraints only at violation time, the rules surface the same policies the hooks enforce as intent before they become blocked actions. Each rule names the hook or check that enforces it. Diagnostic checks fail the build if the rules' protected-path list drifts from the permission deny list, or if a config or instruction file appears in a subfolder, where it would override the protected one.
 
 ### 15. Staged Auto-formatting
 
