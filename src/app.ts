@@ -1,3 +1,4 @@
+import { focusControl, patchChildren } from "./patch";
 import { loadTodos, saveTodos } from "./storage";
 import {
   findRemoval,
@@ -51,15 +52,20 @@ function isFinishKey(event: KeyboardEvent): boolean {
   return !isComposing && (key === "Enter" || key === "Escape");
 }
 
-function focusEditButton(list: Element, editor: HTMLElement): void {
-  const { id } = editor.dataset;
-  const buttons = list.querySelectorAll<HTMLElement>('[data-action="edit"]');
-  for (const button of buttons) {
-    const { id: buttonId } = button.dataset;
-    if (buttonId === id) {
-      button.focus();
-    }
+// Focus the delete button on the row that took the removed row's place,
+// or the previous row when the last one went, or the fallback when empty.
+function focusAfterRemoval(
+  list: Element,
+  fallback: HTMLElement,
+  removal: Removal | null,
+): void {
+  if (removal === null) {
+    return;
   }
+  const rows = list.children;
+  const row = rows.item(Math.min(removal.index, rows.length - 1));
+  const button = row?.querySelector<HTMLElement>('[data-action="remove"]');
+  (button ?? fallback).focus();
 }
 
 function mountUndo(
@@ -150,8 +156,9 @@ function mountEditing(
     if (editor === null || !isFinishKey(event)) {
       return;
     }
+    const { id } = editor.dataset;
     finish(editor, event.key === "Enter");
-    focusEditButton(list, editor);
+    focusControl(list, "edit", id);
   });
 
   list.addEventListener("focusout", (event) => {
@@ -178,7 +185,7 @@ export function mountApp(
   let todos = loadTodos(storage);
 
   const render = (editingId: string | null = null): void => {
-    list.innerHTML = renderList(todos, editingId);
+    patchChildren(list, renderList(todos, editingId));
     count.textContent = renderCount(remainingCount(todos));
   };
 
@@ -190,6 +197,7 @@ export function mountApp(
 
   const offerUndo = mountUndo(root, (removal) => {
     dispatch({ type: "restore", removal });
+    focusControl(list, "remove", removal.todo.id);
   });
 
   mountEditing(root, render, dispatch);
@@ -206,9 +214,13 @@ export function mountApp(
       return;
     }
     if (action.type === "remove") {
-      offerUndo(findRemoval(todos, action.id));
+      const removal = findRemoval(todos, action.id);
+      offerUndo(removal);
+      dispatch(action);
+      focusAfterRemoval(list, input, removal);
+    } else {
+      dispatch(action);
     }
-    dispatch(action);
   });
 
   clear.addEventListener("click", () => {

@@ -259,3 +259,70 @@ describe("mountApp editing guards", () => {
     expect(list.querySelector(".todo-edit")).not.toBeNull();
   });
 });
+
+const milkToggle = '[data-action="toggle"][data-id="1"]';
+const walkToggle = '[data-action="toggle"][data-id="2"]';
+const milkRemove = '[data-action="remove"][data-id="1"]';
+const walkRemove = '[data-action="remove"][data-id="2"]';
+
+function expectFocus(selector: string): void {
+  expect(document.activeElement).toBe(document.querySelector(selector));
+}
+
+describe("mountApp focus", () => {
+  it("keeps focus on a checkbox after toggling it", () => {
+    mount();
+    required(document.querySelector<HTMLElement>(milkToggle)).focus();
+    click(milkToggle);
+    expectFocus(milkToggle);
+  });
+
+  it("keeps unchanged rows so clicks on them are not lost", () => {
+    mount();
+    click(editMilk);
+    const walk = required(document.querySelector<HTMLElement>(walkToggle));
+    editor().blur();
+    walk.click();
+    expect(texts()).toEqual(["Buy milk", "Walk dog"]);
+    expect(countText()).toBe("2 items left");
+  });
+
+  it("moves focus to the restored todo after undo", () => {
+    mount();
+    click(milkRemove);
+    click("#todo-undo-button");
+    expectFocus(milkRemove);
+  });
+});
+
+describe("mountApp focus after delete", () => {
+  it("moves focus to the next row", () => {
+    mount();
+    click(milkRemove);
+    expectFocus(walkRemove);
+  });
+
+  it("moves focus to the previous row when the last row is deleted", () => {
+    mount();
+    click(walkRemove);
+    expectFocus(milkRemove);
+  });
+
+  it("moves focus to the input when the list becomes empty", () => {
+    mount([{ id: "1", text: "Buy milk", done: false }]);
+    click(milkRemove);
+    expectFocus("#todo-input");
+  });
+
+  it("ignores deleting a todo that does not exist", () => {
+    mount();
+    const list = required(document.querySelector("#todo-list"));
+    list.insertAdjacentHTML(
+      "beforeend",
+      '<li><button data-action="remove" data-id="9">×</button></li>',
+    );
+    click('[data-id="9"]');
+    expect(texts()).toEqual(["Buy milk", "Walk dog"]);
+    expect(undoHidden()).toBe(true);
+  });
+});
