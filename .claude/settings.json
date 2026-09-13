@@ -1,8 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bash *diagnostics/*.sh)",
-      "Bash(npm run format *)",
+      "Bash(bash diagnostics/full.sh)",
+      "Bash(bash diagnostics/commit.sh)",
+      "Bash(bash diagnostics/edit.sh)",
+      "Bash(npm run format)",
+      "Bash(npm run format:check)",
       "Bash(git status)",
       "Bash(git log *)",
       "Bash(git diff *)",
@@ -20,40 +23,53 @@
     "deny": [
       "Read(README.md)",
       "Edit(README.md)",
-      "Write(README.md)",
       "Edit(CLAUDE.md)",
-      "Write(CLAUDE.md)",
-      "Edit(tsconfig.json)",
-      "Write(tsconfig.json)",
-      "Edit(eslint.config.ts)",
-      "Write(eslint.config.ts)",
-      "Edit(.markdownlint.json)",
-      "Write(.markdownlint.json)",
-      "Edit(.markdownlint-cli2.jsonc)",
-      "Write(.markdownlint-cli2.jsonc)",
-      "Edit(.prettierrc)",
-      "Write(.prettierrc)",
-      "Edit(commitlint.config.ts)",
-      "Write(commitlint.config.ts)",
-      "Edit(.secretlintrc.json)",
-      "Write(.secretlintrc.json)",
-      "Edit(knip.json)",
-      "Write(knip.json)",
-      "Edit(vitest.config.ts)",
-      "Write(vitest.config.ts)",
+      "Edit(.claudeignore)",
+      "Edit(tsconfig*.json)",
+      "Edit(eslint.config.*)",
+      "Edit(.markdownlint*)",
+      "Edit(.prettierrc*)",
+      "Edit(prettier.config.*)",
+      "Edit(.prettierignore)",
+      "Edit(commitlint.config.*)",
+      "Edit(.commitlintrc*)",
+      "Edit(.secretlintrc*)",
+      "Edit(.secretlintignore)",
+      "Edit(knip.*)",
+      "Edit(.knip.*)",
+      "Edit(vitest.config.*)",
+      "Edit(vitest.workspace.*)",
+      "Edit(vite.config.*)",
+      "Edit(.npmrc)",
+      "Edit(.github/**)",
       "Edit(.husky/**)",
-      "Write(.husky/**)",
       "Edit(.claude/**)",
-      "Write(.claude/**)",
       "Edit(diagnostics/**)",
-      "Write(diagnostics/**)",
       "Edit(git-checks/**)",
-      "Write(git-checks/**)",
       "Edit(package.json)",
-      "Write(package.json)",
       "Edit(package-lock.json)",
-      "Write(package-lock.json)"
-    ]
+      "Edit(~/.claude/settings.json)",
+      "Bash(git *--output*)",
+      "mcp__ide__executeCode"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "autoAllowBashIfSandboxed": false,
+    "filesystem": {
+      "allowWrite": ["~/.npm"]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "*.githubusercontent.com",
+        "registry.npmjs.org"
+      ]
+    }
   },
   "hooks": {
     "SessionStart": [
@@ -62,7 +78,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash git-checks/check-branch-state.sh"
+            "command": "bash \"${CLAUDE_PROJECT_DIR}\"/git-checks/check-branch-state.sh"
           }
         ]
       }
@@ -73,11 +89,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash git-checks/check-no-override.sh"
+            "command": "bash \"${CLAUDE_PROJECT_DIR}\"/git-checks/check-no-override.sh"
           },
           {
             "type": "command",
-            "command": "bash git-checks/validate-branch-before-git.sh"
+            "command": "bash \"${CLAUDE_PROJECT_DIR}\"/git-checks/validate-branch-before-git.sh"
           }
         ]
       }
@@ -88,7 +104,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash diagnostics/edit.sh"
+            "command": "bash \"${CLAUDE_PROJECT_DIR}\"/diagnostics/edit.sh"
           }
         ]
       }
