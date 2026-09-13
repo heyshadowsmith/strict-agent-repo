@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # PreToolUse hook (Bash): blocks git commands that skip hooks, force-push, push to
-# main, delete work, or change GitHub protections. Fails closed on any setup error.
+# main, or delete work, and gh commands that change GitHub protections, settings,
+# workflows, secrets, variables, or deploy keys. Fails closed on any setup error.
 
 set -uo pipefail
 
@@ -60,8 +61,15 @@ while IFS= read -r segment; do
   if printf '%s' "$segment" | grep -qE '(^|[[:space:]/(])gh([[:space:]]|$)'; then
     printf '%s' "$segment" | grep -qE 'gh[[:space:]]+pr[[:space:]]+merge.*--admin' \
       && block "merging with --admin bypasses branch rules"
-    printf '%s' "$segment" | grep -qE 'gh[[:space:]]+repo[[:space:]]+(edit|delete|rename|archive)' \
+    printf '%s' "$segment" | grep -qE 'gh[[:space:]]+repo[[:space:]]+(edit|delete|rename|archive|unarchive)' \
       && block "changing GitHub repository settings is not allowed"
+    printf '%s' "$segment" | grep -qE 'gh[[:space:]]+repo[[:space:]]+deploy-key[[:space:]]+(add|delete)' \
+      && block "changing deploy keys is not allowed"
+    # Disabling a workflow would switch off CI, the last check before merge.
+    printf '%s' "$segment" | grep -qE 'gh[[:space:]]+workflow[[:space:]]+(disable|enable)' \
+      && block "enabling or disabling GitHub workflows is not allowed"
+    printf '%s' "$segment" | grep -qE 'gh[[:space:]]+(secret|variable)[[:space:]]+(set|delete|remove)' \
+      && block "changing repository secrets or variables is not allowed"
     # gh api sends POST when fields are given, so treat field flags as writes too.
     if printf '%s' "$segment" | grep -qE 'gh[[:space:]]+api' \
       && printf '%s' "$segment" | grep -qE '[[:space:]](-X|--method)[[:space:]=]*(POST|PUT|PATCH|DELETE)|[[:space:]](-f|-F|--field|--raw-field|--input)([[:space:]=]|$)'; then

@@ -1,4 +1,5 @@
 bash git-checks/protect-main.sh commit
+bash git-checks/validate-branch-name.sh
 
 npm run lint-staged
 bash diagnostics/commit.sh
