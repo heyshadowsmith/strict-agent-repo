@@ -38,11 +38,11 @@ Every available strict TypeScript flag is enabled. Closes every common escape ha
 
 ### 9. Comprehensive ESLint Configuration
 
-Six rule sets enforce strict type-aware rules, modern JavaScript practices, code quality, functional programming patterns, and test hygiene. Prevents a wide class of agent anti-patterns including type assertions, deeply nested logic, monolithic functions, and mutable state.
+Six rule sets enforce strict type-aware rules, modern JavaScript practices, code quality, functional programming patterns, and test hygiene. The whole repo is linted, apart from the protected root config files, and inline ESLint config comments are ignored, so a rule can't be switched off in code. Prevents a wide class of agent anti-patterns including type assertions, deeply nested logic, monolithic functions, and mutable state.
 
 ### 10. 100% Test Coverage Threshold
 
-Coverage is enforced across all four axes at 100%. An agent cannot deliver a feature without fully testing it.
+Coverage is enforced across all four axes at 100% for every TypeScript file in the repo, apart from type declarations and the protected root config files. An agent cannot deliver a feature without fully testing it.
 
 ### 11. Dead Code Detection
 
@@ -71,3 +71,7 @@ Consistent Markdown style is enforced across all documentation files at both com
 ### 17. Required Human Review
 
 Every pull request requires an approving review from the code owner before it can be merged. Even if an agent passes every automated quality gate, a human must inspect and approve its changes.
+
+### 18. Suppression Blocker
+
+A diagnostic check fails the commit, the push, and CI when a tracked file contains anything that switches a check off: coverage, formatter, Markdown lint, or secret scanning ignore comments, TypeScript error suppressions, and skipped or placeholder tests and scenarios. Approving an exception means changing the check itself, which is a protected file only a human can edit.
