@@ -1,27 +1,37 @@
 #!/usr/bin/env bash
 
 # Pre-commit quality gate. Runs after lint-staged has already auto-fixed staged files.
+# Check-only, so what gets checked is what gets committed.
 # Skips tests, knip, secretlint, and audit — those run at pre-push.
 
 set -euo pipefail
 
 echo "Running pre-commit checks..."
 
-echo "Checking code formatting..."
-if ! npm run format:check; then
-    echo "Formatting issues found. Auto-fixing..."
-    npm run format
+# The checks below read the working tree, so unstaged edits or untracked source files
+# could hide problems in what is actually committed.
+partially_staged=$(comm -12 <(git diff --name-only | sort) <(git diff --cached --name-only | sort))
+if [ -n "$partially_staged" ]; then
+  echo "These files have both staged and unstaged changes:"
+  echo "$partially_staged"
+  echo "Stage or stash the remaining changes so the checks see exactly what you commit."
+  exit 1
 fi
+
+untracked_src=$(git ls-files --others --exclude-standard src)
+if [ -n "$untracked_src" ]; then
+  echo "Untracked files in src/ can make checks pass locally but fail in CI:"
+  echo "$untracked_src"
+  echo "Add or remove them before committing."
+  exit 1
+fi
+
+echo "Checking code formatting..."
+npm run format:check
 
 echo "Running TypeScript compiler..."
 npm run tsc
 
 echo "Running linters..."
-if ! npm run lint; then
-    echo "Lint issues found. Auto-fixing..."
-    npm run lint:fix
-fi
-if ! npm run lint:md; then
-    echo "Markdown lint issues found. Auto-fixing..."
-    npm run lint:md:fix
-fi
+npm run lint
+npm run lint:md
