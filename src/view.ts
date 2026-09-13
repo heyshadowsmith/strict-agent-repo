@@ -21,6 +21,10 @@ export function renderTodo(todo: Todo): string {
   ].join("");
 }
 
+export function renderUndoMessage(todo: Todo): string {
+  return `Deleted “${todo.text}”`;
+}
+
 export function renderCount(remaining: number): string {
   return `${String(remaining)} ${remaining === 1 ? "item" : "items"} left`;
 }

@@ -4,10 +4,16 @@ export interface Todo {
   readonly done: boolean;
 }
 
+export interface Removal {
+  readonly todo: Todo;
+  readonly index: number;
+}
+
 export type Action =
   | { readonly type: "add"; readonly id: string; readonly text: string }
   | { readonly type: "toggle"; readonly id: string }
   | { readonly type: "remove"; readonly id: string }
+  | { readonly type: "restore"; readonly removal: Removal }
   | { readonly type: "clear-completed" };
 
 export function reduce(
@@ -29,10 +35,23 @@ export function reduce(
     case "remove": {
       return todos.filter((todo) => todo.id !== action.id);
     }
+    case "restore": {
+      const { todo, index } = action.removal;
+      return [...todos.slice(0, index), todo, ...todos.slice(index)];
+    }
     case "clear-completed": {
       return todos.filter((todo) => !todo.done);
     }
   }
+}
+
+export function findRemoval(
+  todos: readonly Todo[],
+  id: string,
+): Removal | null {
+  const index = todos.findIndex((todo) => todo.id === id);
+  const todo = todos[index];
+  return todo === undefined ? null : { todo, index };
 }
 
 export function remainingCount(todos: readonly Todo[]): number {

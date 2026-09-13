@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderCount, renderTodo } from "./view";
+import { renderCount, renderTodo, renderUndoMessage } from "./view";
 
 describe("renderTodo", () => {
   it("renders an open todo", () => {
@@ -20,6 +20,13 @@ describe("renderTodo", () => {
     const html = renderTodo({ id: `"'`, text: "<b>&</b>", done: false });
     expect(html).toContain("<span>&lt;b&gt;&amp;&lt;/b&gt;</span>");
     expect(html).toContain('data-id="&quot;&#39;"');
+  });
+});
+
+describe("renderUndoMessage", () => {
+  it("names the deleted todo", () => {
+    const todo = { id: "1", text: "Buy milk", done: false };
+    expect(renderUndoMessage(todo)).toBe("Deleted “Buy milk”");
   });
 });
 

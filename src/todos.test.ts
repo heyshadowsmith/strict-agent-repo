@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reduce, remainingCount, type Todo } from "./todos";
+import { findRemoval, reduce, remainingCount, type Todo } from "./todos";
 
 const milk: Todo = { id: "1", text: "Buy milk", done: false };
 const walk: Todo = { id: "2", text: "Walk dog", done: true };
@@ -27,8 +27,23 @@ describe("reduce", () => {
     expect(reduce([milk, walk], { type: "remove", id: "1" })).toEqual([walk]);
   });
 
+  it("restores a todo at its original index", () => {
+    const removal = { todo: milk, index: 0 };
+    expect(reduce([walk], { type: "restore", removal })).toEqual([milk, walk]);
+  });
+
   it("clears completed todos", () => {
     expect(reduce([milk, walk], { type: "clear-completed" })).toEqual([milk]);
+  });
+});
+
+describe("findRemoval", () => {
+  it("finds the todo and its index", () => {
+    expect(findRemoval([milk, walk], "2")).toEqual({ todo: walk, index: 1 });
+  });
+
+  it("returns null for an unknown id", () => {
+    expect(findRemoval([milk], "9")).toBeNull();
   });
 });
 
