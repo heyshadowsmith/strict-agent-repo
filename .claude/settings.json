@@ -21,7 +21,6 @@
       "Bash(which *)"
     ],
     "deny": [
-      "Read(README.md)",
       "Edit(README.md)",
       "Edit(CLAUDE.md)",
       "Edit(.claudeignore)",
