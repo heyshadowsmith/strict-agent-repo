@@ -52,14 +52,32 @@ export function addTodo(text: string): void {
   element('#todo-form button[type="submit"]').click();
 }
 
-export function clickRowControl(text: string, action: string): void {
-  const span = [...document.querySelectorAll(".todo span")].find(
+function todoText(text: string): HTMLElement {
+  const span = [...document.querySelectorAll<HTMLElement>(".todo span")].find(
     (candidate) => candidate.textContent === text,
   );
   assert.exists(span, `No todo named "${text}"`);
-  const row = span.closest(".todo");
+  return span;
+}
+
+export function clickTodoText(text: string): void {
+  todoText(text).click();
+}
+
+export function rowControl(text: string, action: string): HTMLElement {
+  const row = todoText(text).closest(".todo");
   assert.exists(row, `No row for "${text}"`);
   const control = row.querySelector<HTMLElement>(`[data-action="${action}"]`);
   assert.exists(control, `No ${action} control for "${text}"`);
-  control.click();
+  return control;
+}
+
+export function clickRowControl(text: string, action: string): void {
+  rowControl(text, action).click();
+}
+
+export function isDone(text: string): boolean {
+  const checkbox = rowControl(text, "toggle");
+  assert.instanceOf(checkbox, HTMLInputElement);
+  return checkbox.checked;
 }
