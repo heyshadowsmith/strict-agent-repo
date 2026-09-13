@@ -66,5 +66,11 @@ export default tseslint.config(
       "functional/no-mixed-types": "error",
     },
   },
+  {
+    files: ["src/features/**/*.steps.test.ts"],
+    rules: {
+      "sonarjs/no-empty-test-file": "off",
+    },
+  },
   prettierConfig,
 );
