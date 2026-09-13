@@ -108,7 +108,7 @@ describe("mountApp actions", () => {
     const list = required(document.querySelector("#todo-list"));
     list.insertAdjacentHTML(
       "beforeend",
-      '<li id="extra"><span data-action="edit" data-id="1">Edit</span> text</li>',
+      '<li id="extra"><span data-action="archive" data-id="1">Archive</span> text</li>',
     );
     const extra = required(document.querySelector<HTMLElement>("#extra"));
     click("#extra span");
@@ -177,5 +177,85 @@ describe("mountApp undo", () => {
     mount();
     click("#todo-undo-button");
     expect(texts()).toEqual(["Buy milk", "Walk dog"]);
+  });
+});
+
+function editor(): HTMLInputElement {
+  return required(document.querySelector<HTMLInputElement>(".todo-edit"));
+}
+
+function press(target: Element, key: string, isComposing = false): void {
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", { key, isComposing, bubbles: true }),
+  );
+}
+
+const editMilk = '[data-action="edit"][data-id="1"]';
+
+describe("mountApp editing", () => {
+  it("opens an editor with the todo text selected", () => {
+    mount();
+    click(editMilk);
+    const input = editor();
+    expect(document.activeElement).toBe(input);
+    expect(input.value).toBe("Buy milk");
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, 8]);
+    expect(texts()).toEqual(["Walk dog"]);
+  });
+
+  it("saves on Enter and returns focus to the edit button", () => {
+    mount();
+    click(editMilk);
+    editor().value = "Buy oat milk";
+    press(editor(), "Enter");
+    expect(texts()).toEqual(["Buy oat milk", "Walk dog"]);
+    expect(localStorage.getItem("todos")).toContain("Buy oat milk");
+    expect(document.activeElement).toBe(document.querySelector(editMilk));
+  });
+
+  it("saves when the editor loses focus", () => {
+    mount();
+    click(editMilk);
+    editor().value = "Buy oat milk";
+    editor().blur();
+    expect(texts()).toEqual(["Buy oat milk", "Walk dog"]);
+  });
+
+  it("cancels on Escape", () => {
+    mount();
+    click(editMilk);
+    editor().value = "Nope";
+    press(editor(), "Escape");
+    expect(texts()).toEqual(["Buy milk", "Walk dog"]);
+    expect(document.activeElement).toBe(document.querySelector(editMilk));
+  });
+});
+
+describe("mountApp editing guards", () => {
+  it("ignores other keys, composition, and events outside the editor", () => {
+    mount();
+    const walk = required(
+      document.querySelector<HTMLElement>('[data-action="toggle"]'),
+    );
+    walk.focus();
+    press(walk, "Enter");
+    walk.blur();
+    click(editMilk);
+    press(editor(), "a");
+    press(editor(), "Enter", true);
+    expect(document.activeElement).toBe(editor());
+    expect(texts()).toEqual(["Walk dog"]);
+  });
+
+  it("ignores an editor that is not being edited", () => {
+    mount();
+    const list = required(document.querySelector("#todo-list"));
+    list.insertAdjacentHTML(
+      "beforeend",
+      '<li><input class="todo-edit" data-id="1" /></li>',
+    );
+    editor().focus();
+    editor().blur();
+    expect(list.querySelector(".todo-edit")).not.toBeNull();
   });
 });

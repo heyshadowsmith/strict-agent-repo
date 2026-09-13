@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { renderCount, renderTodo, renderUndoMessage } from "./view";
+import {
+  renderCount,
+  renderEditor,
+  renderList,
+  renderTodo,
+  renderUndoMessage,
+} from "./view";
 
 describe("renderTodo", () => {
   it("renders an open todo", () => {
     const html = renderTodo({ id: "1", text: "Buy milk", done: false });
     expect(html).toContain('<li class="todo">');
     expect(html).toContain('data-action="toggle" data-id="1" />');
+    expect(html).toContain('data-action="edit" data-id="1"');
     expect(html).toContain('data-action="remove" data-id="1"');
     expect(html).toContain("<span>Buy milk</span>");
   });
@@ -20,6 +27,27 @@ describe("renderTodo", () => {
     const html = renderTodo({ id: `"'`, text: "<b>&</b>", done: false });
     expect(html).toContain("<span>&lt;b&gt;&amp;&lt;/b&gt;</span>");
     expect(html).toContain('data-id="&quot;&#39;"');
+  });
+});
+
+describe("renderEditor", () => {
+  it("renders an input with the escaped text and id", () => {
+    const html = renderEditor({ id: '"', text: '<b>"hi"</b>', done: false });
+    expect(html).toContain('data-id="&quot;"');
+    expect(html).toContain('value="&lt;b&gt;&quot;hi&quot;&lt;/b&gt;"');
+  });
+});
+
+describe("renderList", () => {
+  it("renders only the todo being edited as an editor", () => {
+    const todos = [
+      { id: "1", text: "Buy milk", done: false },
+      { id: "2", text: "Walk dog", done: true },
+    ];
+    const html = renderList(todos, "2");
+    expect(html).toContain("<span>Buy milk</span>");
+    expect(html).toContain('value="Walk dog"');
+    expect(html).not.toContain("<span>Walk dog</span>");
   });
 });
 

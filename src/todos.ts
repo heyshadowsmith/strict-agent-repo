@@ -12,6 +12,7 @@ export interface Removal {
 export type Action =
   | { readonly type: "add"; readonly id: string; readonly text: string }
   | { readonly type: "toggle"; readonly id: string }
+  | { readonly type: "edit"; readonly id: string; readonly text: string }
   | { readonly type: "remove"; readonly id: string }
   | { readonly type: "restore"; readonly removal: Removal }
   | { readonly type: "clear-completed" };
@@ -30,6 +31,15 @@ export function reduce(
     case "toggle": {
       return todos.map((todo) =>
         todo.id === action.id ? { ...todo, done: !todo.done } : todo,
+      );
+    }
+    case "edit": {
+      const text = action.text.trim();
+      if (text === "") {
+        return todos;
+      }
+      return todos.map((todo) =>
+        todo.id === action.id ? { ...todo, text } : todo,
       );
     }
     case "remove": {
