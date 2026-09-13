@@ -32,6 +32,19 @@ describe("reduce", () => {
     expect(reduce([walk], { type: "restore", removal })).toEqual([milk, walk]);
   });
 
+  it("edits the matching todo with trimmed text", () => {
+    const action = { type: "edit", id: "1", text: " Buy oat milk " } as const;
+    expect(reduce([milk, walk], action)).toEqual([
+      { ...milk, text: "Buy oat milk" },
+      walk,
+    ]);
+  });
+
+  it("ignores blank edits", () => {
+    const todos = [milk];
+    expect(reduce(todos, { type: "edit", id: "1", text: "  " })).toBe(todos);
+  });
+
   it("clears completed todos", () => {
     expect(reduce([milk, walk], { type: "clear-completed" })).toEqual([milk]);
   });

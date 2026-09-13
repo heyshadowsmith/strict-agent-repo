@@ -6,7 +6,7 @@ import {
   type Action,
   type Removal,
 } from "./todos";
-import { renderCount, renderTodo, renderUndoMessage } from "./view";
+import { renderCount, renderList, renderUndoMessage } from "./view";
 
 const UNDO_TIMEOUT_MS = 5000;
 
@@ -29,6 +29,37 @@ function readAction(target: EventTarget | null): Action | null {
     return { type: action, id };
   }
   return null;
+}
+
+function readEditButton(target: EventTarget | null): string | null {
+  if (!(target instanceof HTMLElement)) {
+    return null;
+  }
+  const { action, id } = target.dataset;
+  return action === "edit" && id !== undefined ? id : null;
+}
+
+function readEditor(target: EventTarget | null): HTMLInputElement | null {
+  const isEditor =
+    target instanceof HTMLInputElement &&
+    target.classList.contains("todo-edit");
+  return isEditor ? target : null;
+}
+
+function isFinishKey(event: KeyboardEvent): boolean {
+  const { isComposing, key } = event;
+  return !isComposing && (key === "Enter" || key === "Escape");
+}
+
+function focusEditButton(list: Element, editor: HTMLElement): void {
+  const { id } = editor.dataset;
+  const buttons = list.querySelectorAll<HTMLElement>('[data-action="edit"]');
+  for (const button of buttons) {
+    const { id: buttonId } = button.dataset;
+    if (buttonId === id) {
+      button.focus();
+    }
+  }
 }
 
 function mountUndo(
@@ -74,6 +105,63 @@ function mountUndo(
   return offer;
 }
 
+function mountEditing(
+  root: ParentNode,
+  render: (editingId: string | null) => void,
+  dispatch: (action: Action) => void,
+): void {
+  const list = required(
+    root.querySelector<HTMLElement>("#todo-list"),
+    "#todo-list",
+  );
+  let editingId: string | null = null;
+
+  // Re-rendering can blur the editor again, so only the active one may finish.
+  const finish = (editor: HTMLInputElement, save: boolean): void => {
+    const { id } = editor.dataset;
+    if (id === undefined || id !== editingId) {
+      return;
+    }
+    editingId = null;
+    if (save) {
+      dispatch({ type: "edit", id, text: editor.value });
+    } else {
+      render(null);
+    }
+  };
+
+  list.addEventListener("click", (event) => {
+    const id = readEditButton(event.target);
+    if (id === null) {
+      return;
+    }
+    editingId = id;
+    render(id);
+    const editor = required(
+      list.querySelector<HTMLInputElement>(".todo-edit"),
+      ".todo-edit",
+    );
+    editor.focus();
+    editor.select();
+  });
+
+  list.addEventListener("keydown", (event) => {
+    const editor = readEditor(event.target);
+    if (editor === null || !isFinishKey(event)) {
+      return;
+    }
+    finish(editor, event.key === "Enter");
+    focusEditButton(list, editor);
+  });
+
+  list.addEventListener("focusout", (event) => {
+    const editor = readEditor(event.target);
+    if (editor !== null) {
+      finish(editor, true);
+    }
+  });
+}
+
 export function mountApp(
   root: ParentNode,
   storage: Pick<Storage, "getItem" | "setItem">,
@@ -89,8 +177,8 @@ export function mountApp(
 
   let todos = loadTodos(storage);
 
-  const render = (): void => {
-    list.innerHTML = todos.map(renderTodo).join("");
+  const render = (editingId: string | null = null): void => {
+    list.innerHTML = renderList(todos, editingId);
     count.textContent = renderCount(remainingCount(todos));
   };
 
@@ -103,6 +191,8 @@ export function mountApp(
   const offerUndo = mountUndo(root, (removal) => {
     dispatch({ type: "restore", removal });
   });
+
+  mountEditing(root, render, dispatch);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();

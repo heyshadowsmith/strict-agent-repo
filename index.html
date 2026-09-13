@@ -189,6 +189,27 @@
       .todo button:hover {
         color: var(--accent);
       }
+      .todo button[data-action="edit"] {
+        font-size: 1.1rem;
+      }
+      .todo input.todo-edit {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+        height: 2.25rem;
+        margin-left: 2.1rem;
+        padding: 0;
+        font: 1.25rem var(--serif);
+        color: inherit;
+        background: none;
+        border: none;
+        border-bottom: 2px solid var(--accent);
+        border-radius: 0;
+        cursor: text;
+      }
+      .todo input.todo-edit:focus-visible {
+        outline: none;
+      }
       footer {
         display: flex;
         align-items: center;
