@@ -19,8 +19,16 @@ export default tseslint.config(
       },
     },
   },
+  // Ignore inline config comments, so a rule can't be switched off in code.
   {
-    ignores: ["dist/**"],
+    linterOptions: {
+      noInlineConfig: true,
+    },
+  },
+  // Root config files are protected and use their tools' key names, so they
+  // aren't linted. Everything else in the repo is.
+  {
+    ignores: ["dist/**", "coverage/**", "*.config.ts"],
   },
   {
     plugins: { "no-only-tests": noOnlyTests },

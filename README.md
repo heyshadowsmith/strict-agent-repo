@@ -54,7 +54,7 @@ All files are scanned for credential patterns on every pre-push run. Prevents ac
 
 ### 13. Dependency Vulnerability Auditing
 
-Dependencies are audited for known vulnerabilities on every pre-push. Catches introduced vulnerabilities when the agent adds or upgrades packages.
+Dependencies are audited for known vulnerabilities in CI on every pull request and every push to `main`, which flags vulnerabilities an agent introduces when it adds or upgrades packages. Findings show as a CI warning rather than a failure, so a vulnerable dependency with no fix available doesn't block all work.
 
 ### 14. Agent Instructions via `.claude/rules/`
 
