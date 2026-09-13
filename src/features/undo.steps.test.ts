@@ -79,6 +79,7 @@ describeFeature(loadFeatureFromText(undoFeature), (feature) => {
     scenario.When("I delete {string}", deleteTodo);
     scenario.And("I click Undo", clickUndo);
     scenario.Then(inOrder, listShowsInOrder);
+    scenario.And("the undo offer is hidden", offerHidden);
   });
 
   feature.Scenario("The undo offer expires", (scenario) => {

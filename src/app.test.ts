@@ -4,10 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import page from "../index.html?raw";
 import { mountApp } from "./app";
 
+// User-facing behavior is described in src/features/*.feature. These tests
+// cover guards and internals that the scenarios don't reach.
+
 const stored = [
   { id: "1", text: "Buy milk", done: false },
   { id: "2", text: "Walk dog", done: true },
 ];
+
+const editMilk = '[data-action="edit"][data-id="1"]';
 
 function required<T>(value: T | null): T {
   if (value === null) {
@@ -30,9 +35,23 @@ function countText(): string | null {
   return required(document.querySelector("#todo-count")).textContent;
 }
 
-function mount(todos: readonly object[] = stored): void {
-  localStorage.setItem("todos", JSON.stringify(todos));
+function mount(): void {
+  localStorage.setItem("todos", JSON.stringify(stored));
   mountApp(document, localStorage);
+}
+
+function undoHidden(): boolean {
+  return required(document.querySelector<HTMLElement>("#todo-undo")).hidden;
+}
+
+function editor(): HTMLInputElement {
+  return required(document.querySelector<HTMLInputElement>(".todo-edit"));
+}
+
+function press(target: Element, key: string, isComposing = false): void {
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", { key, isComposing, bubbles: true }),
+  );
 }
 
 beforeEach(() => {
@@ -43,21 +62,7 @@ beforeEach(() => {
   ).body.innerHTML;
 });
 
-describe("mountApp rendering", () => {
-  it("renders stored todos from local storage", () => {
-    mount();
-    expect(texts()).toEqual(["Buy milk", "Walk dog"]);
-    expect(countText()).toBe("1 item left");
-    const walk = document.querySelector<HTMLInputElement>('[data-id="2"]');
-    expect(required(walk).checked).toBe(true);
-  });
-
-  it("starts empty when nothing is stored", () => {
-    mountApp(document, localStorage);
-    expect(texts()).toEqual([]);
-    expect(countText()).toBe("0 items left");
-  });
-
+describe("mountApp setup", () => {
   it("throws when the page is missing an element", () => {
     document.body.innerHTML = "";
     expect(() => {
@@ -66,43 +71,7 @@ describe("mountApp rendering", () => {
   });
 });
 
-describe("mountApp actions", () => {
-  it("adds a todo when the form is submitted", () => {
-    mount([]);
-    const input = required(
-      document.querySelector<HTMLInputElement>("#todo-input"),
-    );
-    input.value = "Call mom";
-    click('button[type="submit"]');
-    expect(texts()).toEqual(["Call mom"]);
-    expect(input.value).toBe("");
-    expect(localStorage.getItem("todos")).toContain("Call mom");
-  });
-
-  it("toggles a todo when its checkbox is clicked", () => {
-    mount();
-    click('[data-action="toggle"][data-id="1"]');
-    expect(countText()).toBe("0 items left");
-  });
-
-  it("toggles a todo once when its label text is clicked", () => {
-    mount();
-    click(".todo span");
-    expect(countText()).toBe("0 items left");
-  });
-
-  it("removes a todo when its delete button is clicked", () => {
-    mount();
-    click('[data-action="remove"][data-id="1"]');
-    expect(texts()).toEqual(["Walk dog"]);
-  });
-
-  it("clears completed todos", () => {
-    mount();
-    click("#todo-clear");
-    expect(texts()).toEqual(["Buy milk"]);
-  });
-
+describe("mountApp ignored input", () => {
   it("ignores clicks that are not todo actions", () => {
     mount();
     const list = required(document.querySelector("#todo-list"));
@@ -119,115 +88,23 @@ describe("mountApp actions", () => {
     expect(list.contains(extra)).toBe(true);
     expect(countText()).toBe("1 item left");
   });
-});
-
-function undoHidden(): boolean {
-  return required(document.querySelector<HTMLElement>("#todo-undo")).hidden;
-}
-
-describe("mountApp undo", () => {
-  const removeMilk = '[data-action="remove"][data-id="1"]';
-  const removeWalk = '[data-action="remove"][data-id="2"]';
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it("offers to undo a deleted todo", () => {
-    mount();
-    expect(undoHidden()).toBe(true);
-    click(removeMilk);
-    expect(undoHidden()).toBe(false);
-    const message = required(document.querySelector("#todo-undo-text"));
-    expect(message.textContent).toBe("Deleted “Buy milk”");
-  });
-
-  it("restores a deleted todo to its original position", () => {
-    mount();
-    click(removeMilk);
-    click("#todo-undo-button");
-    expect(texts()).toEqual(["Buy milk", "Walk dog"]);
-    expect(localStorage.getItem("todos")).toBe(JSON.stringify(stored));
-    expect(undoHidden()).toBe(true);
-  });
-
-  it("hides the undo offer after five seconds", () => {
-    vi.useFakeTimers();
-    mount();
-    click(removeMilk);
-    vi.advanceTimersByTime(4999);
-    expect(undoHidden()).toBe(false);
-    vi.advanceTimersByTime(1);
-    expect(undoHidden()).toBe(true);
-  });
-
-  it("only undoes the most recent delete and restarts the timer", () => {
-    vi.useFakeTimers();
-    mount();
-    click(removeMilk);
-    vi.advanceTimersByTime(3000);
-    click(removeWalk);
-    vi.advanceTimersByTime(3000);
-    expect(undoHidden()).toBe(false);
-    click("#todo-undo-button");
-    expect(texts()).toEqual(["Walk dog"]);
-  });
 
   it("does nothing when there is nothing to undo", () => {
     mount();
     click("#todo-undo-button");
     expect(texts()).toEqual(["Buy milk", "Walk dog"]);
   });
-});
 
-function editor(): HTMLInputElement {
-  return required(document.querySelector<HTMLInputElement>(".todo-edit"));
-}
-
-function press(target: Element, key: string, isComposing = false): void {
-  target.dispatchEvent(
-    new KeyboardEvent("keydown", { key, isComposing, bubbles: true }),
-  );
-}
-
-const editMilk = '[data-action="edit"][data-id="1"]';
-
-describe("mountApp editing", () => {
-  it("opens an editor with the todo text selected", () => {
+  it("ignores deleting a todo that does not exist", () => {
     mount();
-    click(editMilk);
-    const input = editor();
-    expect(document.activeElement).toBe(input);
-    expect(input.value).toBe("Buy milk");
-    expect([input.selectionStart, input.selectionEnd]).toEqual([0, 8]);
-    expect(texts()).toEqual(["Walk dog"]);
-  });
-
-  it("saves on Enter and returns focus to the edit button", () => {
-    mount();
-    click(editMilk);
-    editor().value = "Buy oat milk";
-    press(editor(), "Enter");
-    expect(texts()).toEqual(["Buy oat milk", "Walk dog"]);
-    expect(localStorage.getItem("todos")).toContain("Buy oat milk");
-    expect(document.activeElement).toBe(document.querySelector(editMilk));
-  });
-
-  it("saves when the editor loses focus", () => {
-    mount();
-    click(editMilk);
-    editor().value = "Buy oat milk";
-    editor().blur();
-    expect(texts()).toEqual(["Buy oat milk", "Walk dog"]);
-  });
-
-  it("cancels on Escape", () => {
-    mount();
-    click(editMilk);
-    editor().value = "Nope";
-    press(editor(), "Escape");
+    const list = required(document.querySelector("#todo-list"));
+    list.insertAdjacentHTML(
+      "beforeend",
+      '<li><button data-action="remove" data-id="9">×</button></li>',
+    );
+    click('[data-id="9"]');
     expect(texts()).toEqual(["Buy milk", "Walk dog"]);
-    expect(document.activeElement).toBe(document.querySelector(editMilk));
+    expect(undoHidden()).toBe(true);
   });
 });
 
@@ -260,69 +137,36 @@ describe("mountApp editing guards", () => {
   });
 });
 
-const milkToggle = '[data-action="toggle"][data-id="1"]';
-const walkToggle = '[data-action="toggle"][data-id="2"]';
-const milkRemove = '[data-action="remove"][data-id="1"]';
-const walkRemove = '[data-action="remove"][data-id="2"]';
-
-function expectFocus(selector: string): void {
-  expect(document.activeElement).toBe(document.querySelector(selector));
-}
-
-describe("mountApp focus", () => {
-  it("keeps focus on a checkbox after toggling it", () => {
-    mount();
-    required(document.querySelector<HTMLElement>(milkToggle)).focus();
-    click(milkToggle);
-    expectFocus(milkToggle);
+describe("mountApp undo timer", () => {
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
+  it("only undoes the most recent delete and restarts the timer", () => {
+    vi.useFakeTimers();
+    mount();
+    click('[data-action="remove"][data-id="1"]');
+    vi.advanceTimersByTime(3000);
+    click('[data-action="remove"][data-id="2"]');
+    vi.advanceTimersByTime(3000);
+    expect(undoHidden()).toBe(false);
+    click("#todo-undo-button");
+    expect(texts()).toEqual(["Walk dog"]);
+  });
+});
+
+describe("mountApp re-rendering", () => {
   it("keeps unchanged rows so clicks on them are not lost", () => {
     mount();
     click(editMilk);
-    const walk = required(document.querySelector<HTMLElement>(walkToggle));
+    const walk = required(
+      document.querySelector<HTMLElement>(
+        '[data-action="toggle"][data-id="2"]',
+      ),
+    );
     editor().blur();
     walk.click();
     expect(texts()).toEqual(["Buy milk", "Walk dog"]);
     expect(countText()).toBe("2 items left");
-  });
-
-  it("moves focus to the restored todo after undo", () => {
-    mount();
-    click(milkRemove);
-    click("#todo-undo-button");
-    expectFocus(milkRemove);
-  });
-});
-
-describe("mountApp focus after delete", () => {
-  it("moves focus to the next row", () => {
-    mount();
-    click(milkRemove);
-    expectFocus(walkRemove);
-  });
-
-  it("moves focus to the previous row when the last row is deleted", () => {
-    mount();
-    click(walkRemove);
-    expectFocus(milkRemove);
-  });
-
-  it("moves focus to the input when the list becomes empty", () => {
-    mount([{ id: "1", text: "Buy milk", done: false }]);
-    click(milkRemove);
-    expectFocus("#todo-input");
-  });
-
-  it("ignores deleting a todo that does not exist", () => {
-    mount();
-    const list = required(document.querySelector("#todo-list"));
-    list.insertAdjacentHTML(
-      "beforeend",
-      '<li><button data-action="remove" data-id="9">×</button></li>',
-    );
-    click('[data-id="9"]');
-    expect(texts()).toEqual(["Buy milk", "Walk dog"]);
-    expect(undoHidden()).toBe(true);
   });
 });
