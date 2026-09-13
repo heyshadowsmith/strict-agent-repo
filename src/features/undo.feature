@@ -9,6 +9,7 @@ Feature: Undo a deleted todo
         When I delete "Buy milk"
         And I click Undo
         Then my list shows "Buy milk" and "Walk dog" in that order
+        And the undo offer is hidden
 
     Scenario: The undo offer expires
         When I delete "Buy milk"
