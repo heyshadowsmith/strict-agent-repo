@@ -31,6 +31,7 @@
     "*.{json,html,css,md}": "prettier --write"
   },
   "devDependencies": {
+    "@amiceli/vitest-cucumber": "7.0.0",
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
     "@commitlint/types": "^20.4.0",
