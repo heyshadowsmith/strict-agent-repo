@@ -22,5 +22,8 @@ npm run knip
 echo "Checking for secrets..."
 npx secretlint "**/*"
 
+echo "Checking build..."
+npm run build
+
 echo "Running tests with coverage..."
 npm run test -- --coverage

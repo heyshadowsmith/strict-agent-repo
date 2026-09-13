@@ -31,6 +31,3 @@ jobs:
 
       - name: Run diagnostics
         run: bash diagnostics/full.sh
-
-      - name: Build
-        run: npm run build
