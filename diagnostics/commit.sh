@@ -2,7 +2,7 @@
 
 # Pre-commit quality gate. Runs after lint-staged has already auto-fixed staged files.
 # Check-only, so what gets checked is what gets committed.
-# Skips tests, knip, secretlint, and audit — those run at pre-push.
+# Skips tests, knip, and secretlint, which run at pre-push. npm audit runs in CI.
 
 set -euo pipefail
 
@@ -25,6 +25,8 @@ if [ -n "$untracked_src" ]; then
   echo "Add or remove them before committing."
   exit 1
 fi
+
+bash diagnostics/check-suppressions.sh
 
 echo "Checking code formatting..."
 npm run format:check

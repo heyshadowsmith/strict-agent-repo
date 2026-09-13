@@ -6,6 +6,8 @@ set -euo pipefail
 
 echo "Running diagnostics..."
 
+bash diagnostics/check-suppressions.sh
+
 echo "Checking code formatting..."
 npm run format:check
 

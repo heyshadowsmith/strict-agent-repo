@@ -12,8 +12,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "tsc": "tsc",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "lint:md": "markdownlint-cli2 **/*.md",
     "lint:md:fix": "markdownlint-cli2 --fix **/*.md",
     "format": "prettier --write .",
@@ -24,8 +24,8 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "src/**/*.ts": [
-      "eslint --fix",
+    "*.ts": [
+      "eslint --fix --no-warn-ignored",
       "prettier --write"
     ],
     "*.{json,html,css,md}": "prettier --write"
