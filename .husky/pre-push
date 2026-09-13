@@ -1,6 +1,10 @@
-bash git-checks/protect-main.sh push
-bash git-checks/validate-branch-name.sh
+# Read the pushed refs once; git only sends them on stdin a single time.
+refs=$(cat)
+
+printf '%s\n' "$refs" | bash git-checks/protect-main.sh push
+printf '%s\n' "$refs" | bash git-checks/validate-branch-name.sh push
 bash git-checks/check-merged.sh
 bash git-checks/check-pr-size.sh
+bash git-checks/check-clean-tree.sh
 
 bash diagnostics/full.sh
