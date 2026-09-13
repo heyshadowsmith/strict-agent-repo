@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 
-# Blocks pushing a branch that has already been merged into main.
+# Blocks pushing a branch that has already landed in main (including squash merges).
 
 set -euo pipefail
 
 branch=$(git branch --show-current)
+[ -n "$branch" ] || exit 0
 
-if git show-ref --verify --quiet refs/remotes/origin/main; then
-  if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-    if git merge-base --is-ancestor "origin/$branch" origin/main 2>/dev/null; then
-      echo "Branch '$branch' has already been merged into main. Push blocked."
-      exit 1
-    fi
-  fi
+# shellcheck source=git-checks/lib-merged.sh
+source "$(dirname "$0")/lib-merged.sh"
+git fetch --prune --quiet origin 2>/dev/null || true
+
+if branch_is_merged "$branch"; then
+  echo "Branch '$branch' has already landed in main. Push blocked."
+  exit 1
 fi

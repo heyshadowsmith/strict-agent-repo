@@ -1,34 +1,44 @@
 #!/usr/bin/env bash
 
-# PreToolUse hook (Bash): blocks git commit/push/rebase on a branch that is
-# already merged into main, catching cases where SessionStart was bypassed.
+# PreToolUse hook (Bash): blocks git write operations on main, on a detached HEAD,
+# or on a branch that has already landed in main (including squash merges).
+# Fails closed on setup errors.
 
-set -euo pipefail
+set -uo pipefail
 
-INPUT=$(cat)
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+block() {
+  echo "Blocked: $1" >&2
+  exit 2
+}
 
-# Only intercept git write operations
-if ! echo "$COMMAND" | grep -qE "^git\s+(commit|push|rebase)"; then
+command -v jq >/dev/null 2>&1 || block "jq is required for git safety checks"
+INPUT=$(cat) || block "could not read hook input"
+COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty') || block "could not parse hook input"
+
+# Match git write operations anywhere: after `cd x &&`, on later lines, or after -C/-c options.
+if ! printf '%s' "$COMMAND" | grep -qE '(^|[[:space:];&|(/])git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+(commit|push|rebase|merge|cherry-pick|am|revert)([[:space:]]|$)'; then
   exit 0
 fi
 
-if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  exit 0
-fi
+git rev-parse --git-dir >/dev/null 2>&1 || exit 0
 
 branch=$(git branch --show-current)
-
+if [ -z "$branch" ]; then
+  block "detached HEAD. Switch to a feature branch first: git switch -c <type>/<description>"
+fi
 if [ "$branch" = "main" ]; then
-  exit 0
+  block "'main' is protected. Create a feature branch first: git switch -c <type>/<description>"
 fi
 
-git fetch origin main 2>/dev/null || true
+# shellcheck source=git-checks/lib-merged.sh
+source "$(dirname "$0")/lib-merged.sh"
 
-if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-  if git merge-base --is-ancestor "origin/$branch" origin/main 2>/dev/null; then
-    echo "Blocked: '$branch' is already merged into main." >&2
-    echo "Create a new branch before committing: git checkout -b <new-branch-name>" >&2
-    exit 2
-  fi
+if ! git fetch --prune --quiet origin 2>/dev/null; then
+  echo "Warning: could not fetch origin; merged-branch check is using cached refs." >&2
 fi
+
+if branch_is_merged "$branch"; then
+  block "'$branch' has already landed in main. Start a new branch: git switch main && git pull --ff-only && git switch -c <type>/<description>"
+fi
+
+exit 0
