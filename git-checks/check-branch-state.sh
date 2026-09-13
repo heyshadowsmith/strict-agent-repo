@@ -1,39 +1,26 @@
 #!/usr/bin/env bash
 
-# SessionStart hook: blocks an agent session if the current branch is already
-# merged into main but has uncommitted changes or new local commits on top.
+# SessionStart hook: tells Claude when the session starts on a branch that has already
+# landed in main (including squash merges). Stdout is added to Claude's context.
+# Blocking is handled by the PreToolUse hook, since SessionStart can't block reliably.
 
-set -euo pipefail
+set -uo pipefail
 
-if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  exit 0
-fi
+git rev-parse --git-dir >/dev/null 2>&1 || exit 0
 
 branch=$(git branch --show-current)
-
-# Nothing to check on main itself
-if [ "$branch" = "main" ]; then
+if [ -z "$branch" ] || [ "$branch" = "main" ]; then
   exit 0
 fi
 
-git fetch origin main 2>/dev/null || true
+# shellcheck source=git-checks/lib-merged.sh
+source "$(dirname "$0")/lib-merged.sh"
+git fetch --prune --quiet origin 2>/dev/null || true
 
-# Only meaningful if the remote tracking branch exists
-if ! git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-  exit 0
+if branch_is_merged "$branch"; then
+  echo "WARNING: Branch '$branch' has already landed in main."
+  echo "Do NOT make changes here. Start a new branch from main before editing:"
+  echo "  git switch main && git pull --ff-only && git switch -c <type>/<description>"
 fi
 
-if git merge-base --is-ancestor "origin/$branch" origin/main 2>/dev/null; then
-  dirty=$(git status --porcelain)
-  ahead=$(git log --oneline "origin/$branch..HEAD" 2>/dev/null)
-
-  if [ -n "$dirty" ] || [ -n "$ahead" ]; then
-    echo "ERROR: Branch '$branch' is already merged into main but has local changes." >&2
-    echo "" >&2
-    echo "Do NOT make changes here. Move them to a new branch first:" >&2
-    echo "  git stash" >&2
-    echo "  git checkout -b <new-branch-name>" >&2
-    echo "  git stash pop" >&2
-    exit 2
-  fi
-fi
+exit 0
