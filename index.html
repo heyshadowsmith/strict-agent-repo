@@ -2,8 +2,65 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>To-do</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 32rem;
+        margin: 3rem auto;
+        padding: 0 1rem;
+      }
+      form,
+      footer,
+      .todo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+      #todo-input {
+        flex: 1;
+        padding: 0.5rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      .todo {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #ddd;
+      }
+      .todo button {
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+      footer {
+        margin-top: 1rem;
+      }
+      .done span {
+        text-decoration: line-through;
+        color: #888;
+      }
+    </style>
   </head>
   <body>
+    <h1>To-do</h1>
+    <form id="todo-form">
+      <input
+        id="todo-input"
+        placeholder="What needs doing?"
+        aria-label="New to-do"
+        autocomplete="off"
+      />
+      <button type="submit">Add</button>
+    </form>
+    <ul id="todo-list"></ul>
+    <footer>
+      <span id="todo-count"></span>
+      <button id="todo-clear" type="button">Clear completed</button>
+    </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

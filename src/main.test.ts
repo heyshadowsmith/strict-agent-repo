@@ -1,12 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { greet } from "./main";
+// @vitest-environment jsdom
+import { expect, it, vi } from "vitest";
+import { mountApp } from "./app";
 
-describe("greet", () => {
-  it("returns a greeting with the given name", () => {
-    expect(greet("world")).toBe("Hello, world!");
-  });
+vi.mock("./app", () => ({ mountApp: vi.fn() }));
 
-  it("works with any name", () => {
-    expect(greet("Alice")).toBe("Hello, Alice!");
-  });
+it("mounts the app on the page document with local storage", async () => {
+  await import("./main");
+
+  expect(mountApp).toHaveBeenCalledWith(document, localStorage);
 });
